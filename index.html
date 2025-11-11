@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<!--
+ÉSÉPA - Évaluation et Suivi d'Évolution des Personnes Accompagnées
+Version 1.0.0 - MIT License - Open Source
+
+Copyright (c) 2025 LEROY Aurélien (AwReel-Ink)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+-->
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ÉSÉPA - Évaluation et Suivi d'Évolution des Personnes Accompagnées</title>
+    <link rel="stylesheet" href="styles.css">
+   <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docx@7.8.2/build/index.js"></script> -->
+        <!-- ✅ BIBLIOTHÈQUES EN LOCAL (IIFE) -->
+    <script src="libs/xlsx.full.min.js"></script>
+    <script src="libs/docx.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Page d'accueil -->
+        <div id="homePage" class="page active">
+            <div class="container">
+                <h1>ÉSÉPA</h1>
+                <h2>Évaluation et Suivi d'Évolution des Personnes Accompagnées</h2>
+                <button id="searchPersonBtn" class="btn-primary">Chercher une personne accompagnée</button>
+                <input type="file" id="fileInput" accept=".xlsx,.xls,.ods" style="display: none;">
+                <button id="guideBtn" class="btn-secondary">Guide Utilisateur et Restauration</button>
+            </div>
+        </div>
+              <!-- Footer copyright -->
+    <div class="app-footer">
+        <span class="footer-icon">ⓘ</span>
+        Application créée par © LEROY Aurélien - 2025 - Version 1.0.0 - LICENCE MIT OPEN SOURCE
+    </div>
+</div>
+
+        <!-- Page principale après chargement -->
+        <div id="mainPage" class="page">
+            <div class="container">
+                <div class="header-info">
+                    <h2>Informations de la personne accompagnée</h2>
+                    <div class="person-info-form">
+                        <div class="form-group">
+                            <label for="personNom">NOM :</label>
+                            <input type="text" id="personNom" class="form-input" placeholder="NOM">
+                        </div>
+                        <div class="form-group">
+                            <label for="personPrenom">Prénom :</label>
+                            <input type="text" id="personPrenom" class="form-input" placeholder="Prénom">
+                        </div>
+                        <div class="form-group">
+                            <label for="personDateNaissance">Date de naissance :</label>
+                            <input type="text" id="personDateNaissance" class="form-input" placeholder="JJ/MM/AAAA">
+                        </div>
+                        <div class="form-group moniteurs-group">
+                            <label for="personMoniteurs">Moniteur(s) présent lors de l'évaluation :</label>
+                            <textarea id="personMoniteurs" class="form-textarea" placeholder="Ex: Jean Dupont, Marie Martin" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button id="consultBtn" class="btn-primary">Consulter Évaluation</button>
+                    <button id="newEvalBtn" class="btn-primary">Nouvelle Évaluation</button>
+                    <button id="backToHomeBtn" class="btn-secondary">Retour</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page consultation -->
+        <div id="consultPage" class="page">
+            <div class="container-fluid">
+                <div class="page-header">
+                    <button id="backFromConsultBtn" class="btn-back">← Retour</button>
+                    <h2>Consultation des Évaluations</h2>
+                    <div id="exportAllBtnContainer"></div>
+                </div>
+                <div id="sheetTabs" class="sheet-tabs"></div>
+                <div id="consultContent" class="consult-content"></div>
+            </div>
+        </div>
+
+        <!-- Page nouvelle évaluation -->
+        <div id="newEvalPage" class="page">
+            <div class="container-fluid">
+                <div class="page-header">
+                    <button id="backFromNewEvalBtn" class="btn-back">← Retour</button>
+                    <div class="header-center">
+                        <h2>Nouvelle Évaluation</h2>
+                        <div class="person-info-inline">
+                            <input type="text" id="newEvalNom" class="form-input-inline" placeholder="NOM">
+                            <input type="text" id="newEvalPrenom" class="form-input-inline" placeholder="Prénom">
+                            <input type="text" id="newEvalDateNaissance" class="form-input-inline" placeholder="JJ/MM/AAAA">
+                        </div>
+                        <div class="moniteurs-inline">
+                            <label for="newEvalMoniteurs">Moniteur(s) :</label>
+                            <input type="text" id="newEvalMoniteurs" class="form-input-inline-large" placeholder="Ex: Jean Dupont, Marie Martin">
+                        </div>
+                    </div>
+                    <div class="save-buttons">
+                        <button id="saveXlsxBtn" class="btn-save">Sauvegarder (.xlsx)</button>
+                        <!-- <button id="saveXlsBtn" class="btn-save">Sauvegarder (.xls)</button> -->
+                        <button id="saveOdsBtn" class="btn-save">Sauvegarder (.ods)</button>
+                    </div>
+                </div>
+                <div class="split-view">
+                    <div class="left-panel">
+                        <h3>Dernière Évaluation <span id="lastEvalDate"></span></h3>
+                        <div id="oldEvalContent" class="eval-content readonly"></div>
+                    </div>
+                    <div class="separator"></div>
+                    <div class="right-panel">
+                        <h3>Nouvelle Évaluation <span id="currentDate"></span></h3>
+                        <div id="newEvalContent" class="eval-content"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Guide Utilisateur -->
+        <div id="guideModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Guide Utilisateur et Restauration</h2>
+                
+                <div class="guide-section">
+                    <h3>📖 Guide d'utilisation</h3>
+                    <ol>
+                        <li><strong>Nouvelle personne :</strong> Exportez le questionnaire de base, puis chargez-le dans l'application. Vous pourrez renseigner le NOM, Prénom, Date de naissance et Moniteurs directement dans l'interface.</li>
+                        <li><strong>Charger une personne existante :</strong> Cliquez sur "Chercher une personne accompagnée" et sélectionnez le fichier (format recommandé : NOM Prénom - JJMMAAAA.xlsx)</li>
+                        <li><strong>Modifier les informations :</strong> Tous les champs (NOM, Prénom, Date de naissance, Moniteurs) sont toujours modifiables</li>
+                        <li><strong>Moniteurs :</strong> Ce champ permet de garder une trace des différents intervenants présents lors de chaque évaluation</li>
+                        <li><strong>Consulter :</strong> Visualisez les évaluations passées avec les informations des moniteurs présents</li>
+                        <li><strong>Nouvelle évaluation :</strong> Comparez côte à côte l'ancienne et la nouvelle évaluation</li>
+                        <li><strong>Sauvegarder :</strong> Le fichier sera automatiquement nommé selon le format : NOM Prénom - JJMMAAAA.xlsx (ou .xls/.ods selon votre choix)</li>
+                    </ol>
+                </div>
+
+                <div class="guide-section">
+                    <h3>📊 Structure du fichier</h3>
+                    <p>Ligne 1 du tableur :</p>
+                    <ul>
+                        <li><strong>Colonne A :</strong> NOM</li>
+                        <li><strong>Colonne B :</strong> Prénom</li>
+                        <li><strong>Colonne C :</strong> Date de naissance (JJ/MM/AAAA)</li>
+                        <li><strong>Colonnes D-E :</strong> Vides (réservées)</li>
+                        <li><strong>Colonne F :</strong> Moniteur(s) présent lors de l'évaluation</li>
+                    </ul>
+                </div>
+
+                <div class="guide-section">
+                    <h3>✏️ Modifier le questionnaire</h3>
+                    <p>Pour personnaliser le questionnaire :</p>
+                    <ol>
+                        <li>Exportez le questionnaire de base</li>
+                        <li>Ouvrez-le avec Excel ou LibreOffice</li>
+                        <li>Respectez la structure :
+                            <ul>
+                                <li>Ligne 1 : Informations personne (NE PAS MODIFIER la structure)</li>
+                                <li>Ligne 2 : Vide</li>
+                                <li>Ligne 3 : Question</li>
+                                <li>Ligne 4 : Réponses possibles (max 10, colonnes A-J) *une réponse par colonne peu importe la taille de la réponse</li>
+                                <li>Ligne 5 : Choix réponses (0 ou 1) *laisser vide, l'application le remplira en fonction de ce qui sera coché</li>
+                                <li>Ligne 6 : Observation *laisser vide, sera remplit si des observations sont inscrites</li>
+                                <li>Ligne 7 : Ligne vierge *pour la visibilité entre les questions</li>
+                                <li>Ligne X : Question x</li>
+                                <li>Ligne X+1 : Réponses possibles (max 10, colonnes A-J)</li>
+                                <li>Ligne X+2 : Choix réponses (0 ou 1)</li>
+                                <li>Ligne X+3 : Observation</li>
+                                <li>Ligne X+4 : Ligne vierge</li>
+                            </ul>
+                        </li>
+                        <li>Sauvegardez et utilisez ce fichier comme modèle</li>
+                    </ol>
+                </div>
+
+                <div class="guide-section">
+                    <h3>🔄 Restauration</h3>
+                    <button id="exportBaseBtn" class="btn-export">Exporter le questionnaire de base (.xlsx)</button>
+                    <button id="exportBaseOdsBtn" class="btn-export">Exporter le questionnaire de base (.ods)</button>
+                    <p class="info-text">Ces boutons permettent de récupérer le questionnaire par défaut en cas de problème.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+    <script src="app.js"></script>
+</body>
+</html>
